@@ -2,7 +2,6 @@ import random
 
 import cv2
 import numpy as np
-import scipy.misc
 from scipy.ndimage import rotate
 
 
