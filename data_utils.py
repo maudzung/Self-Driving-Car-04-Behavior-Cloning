@@ -11,7 +11,7 @@ def get_data_infor():
     img_dir = os.path.join(working_dir, 'data', 'IMG')
     driving_log_path = './data/driving_log.csv'
     samples = []
-    STEERING_CORRECTION = 0.22
+    STEERING_CORRECTION = 0.2
     with open(driving_log_path) as csvfile:
         reader = csv.reader(csvfile)
         for line in reader:
@@ -57,3 +57,46 @@ def data_generator(samples, transformations=None, batch_size=32):
             y_train = np.array(angles)
 
             yield sklearn.utils.shuffle(X_train, y_train)
+
+
+if __name__ == '__main__':
+    import os
+    import matplotlib.pyplot as plt
+    from transformations import Compose, Random_HFlip, Random_Brightness, Crop, Resize
+
+    samples = get_data_infor()
+    train_gen = data_generator(samples, transformations=None, batch_size=32)
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(8,3))
+    for b_idx, (b_imgs, b_angles) in enumerate(train_gen):
+        if b_idx == 0:
+            img_idx = 0
+            origin_img = b_imgs[img_idx]
+            angle = b_angles[img_idx]
+
+
+
+            hflip_img, hflip_angle = Random_HFlip(p=1)(origin_img, angle)
+
+            ax1.imshow(origin_img)
+            ax1.set_title('original image, angle: {:.2f}'.format(angle))
+            ax2.imshow(hflip_img)
+            ax2.set_title('hflip image, angle: {:.2f}'.format(hflip_angle))
+            plt.savefig(os.path.join('./images', 'hflip.jpg'))
+
+            bright_img, bright_angle = Random_Brightness(p=1)(origin_img, angle)
+
+            ax1.imshow(origin_img)
+            ax1.set_title('original image, angle: {:.2f}'.format(angle))
+            ax2.imshow(bright_img)
+            ax2.set_title('random brightness, angle: {:.2f}'.format(bright_angle))
+            plt.savefig(os.path.join('./images', 'random_brightness.jpg'))
+
+            crop_img, crop_angle = Crop(top=50, bottom=-20, p=1.)(origin_img, angle)
+            ax1.imshow(origin_img)
+            ax1.set_title('original image, angle: {:.2f}'.format(angle))
+            ax2.imshow(crop_img)
+            ax2.set_title('crop image, angle: {:.2f}'.format(crop_angle))
+            plt.savefig(os.path.join('./images', 'crop.jpg'))
+
+        else:
+            break

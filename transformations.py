@@ -18,20 +18,14 @@ class Compose(object):
 
 
 class Crop(object):
-    def __init__(self, top_percent, bottom_percent, p=0.5):
-        self.top_percent = top_percent
-        self.bottom_percent = bottom_percent
-        assert 0 <= self.top_percent < 0.5, 'top_percent should be between 0.0 and 0.5'
-        assert 0 <= self.bottom_percent < 0.5, 'top_percent should be between 0.0 and 0.5'
+    def __init__(self, top, bottom, p=0.5):
+        self.top = top
+        self.bottom = bottom
         self.p = p
 
     def __call__(self, img, angle):
         if random.random() <= self.p:
-            height = img.shape[0]
-            top = int(np.ceil(height * self.top_percent))
-            bottom = height - int(np.ceil(height * self.bottom_percent))
-
-            img = img[top:bottom, :]
+            img = img[self.top:self.bottom, :, :]
         return img, angle
 
 
@@ -47,14 +41,39 @@ class Resize(object):
         return img, angle
 
 
+class Convert_RGB2YUV(object):
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, img, angle):
+        if random.random() <= self.p:
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
+
+        return img, angle
+
+
 class Random_HFlip(object):
     def __init__(self, p=0.5):
         self.p = p
 
     def __call__(self, img, angle):
         if random.random() <= self.p:
-            img = np.fliplr(img)
+            img = cv2.flip(img, 1)
             angle *= -1
+
+        return img, angle
+
+
+class Random_Brightness(object):
+    def __init__(self, p=0.5):
+        self.p = p
+
+    def __call__(self, img, angle):
+        if random.random() <= self.p:
+            hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+            ratio = 1.0 + (np.random.rand() - 0.5)
+            hsv[:, :, 2] = hsv[:, :, 2] * ratio
+            img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
 
         return img, angle
 

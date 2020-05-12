@@ -11,6 +11,9 @@ import eventlet.wsgi
 from PIL import Image
 from flask import Flask
 from io import BytesIO
+import tensorflow as tf
+
+tf.config.experimental.set_visible_devices([], 'GPU')
 
 from keras.models import load_model
 import h5py
@@ -44,7 +47,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 28
 controller.set_desired(set_speed)
 
 

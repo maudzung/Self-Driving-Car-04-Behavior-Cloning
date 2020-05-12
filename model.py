@@ -1,19 +1,23 @@
+import os
+
 import tensorflow as tf
 
 tf.config.experimental.set_visible_devices([], 'GPU')
 
-from keras.layers import Dense, Flatten, Lambda, Cropping2D
+from keras.layers import Dense, Flatten, Lambda, Cropping2D, Dropout
 from keras.layers.convolutional import Convolution2D
 from keras.models import Sequential
 from keras.optimizers import Adam
+from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
-from transformations import Compose, Crop, Resize, Random_Gamma, Random_HFlip, Random_Rotate, Random_Shear
+from transformations import Compose, Random_Brightness, Resize, Crop, Convert_RGB2YUV, Random_HFlip, Random_Rotate, \
+    Random_Shear
 from data_utils import data_generator, get_data_infor
 
 
 def create_model():
-    # Model from this paper:  https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
     model = Sequential()
 
     # Crop the original image
@@ -31,8 +35,7 @@ def create_model():
 
     model.add(Flatten())
 
-    # The five fully connected layers, ReLU activation
-    model.add(Dense(1164, activation='relu'))
+    # The 4 fully connected layers, ReLU activation
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
@@ -44,36 +47,48 @@ if __name__ == '__main__':
     model = create_model()
     model.summary()
 
-    number_of_epochs = 5
+    number_of_epochs = 10
     learning_rate = 1e-3
-    batch_size = 128
+    batch_size = 64
 
     model.compile(optimizer=Adam(learning_rate), loss="mse")
 
     # create two generators for training and validation
     train_transformations = Compose([
-        Random_Rotate(rotation_angle_limit=15, p=0.5),
-        Random_Shear(shear_range=20, p=0.5),
         Random_HFlip(p=0.5),
-        Random_Gamma(p=0.5),
+        Random_Brightness(p=0.5),
+        # Crop(top=50, bottom=-20, p=1.),
+        # Resize(new_size=(200, 66), p=1.),
+        # Convert_RGB2YUV(p=1.),
     ], p=1.0)
 
     samples = get_data_infor()
 
     train_samples, validation_samples = train_test_split(samples, test_size=0.2, shuffle=True, random_state=2020)
-    # Some useful constants
 
-    train_gen = data_generator(train_samples, transformations=train_transformations, batch_size=batch_size)
+    train_gen = data_generator(train_samples, transformations=None, batch_size=batch_size)
     validation_gen = data_generator(validation_samples, transformations=None, batch_size=batch_size)
+
+    checkpoint = ModelCheckpoint(filepath='model.{epoch:02d}-{val_loss:.2f}.h5')
 
     history = model.fit_generator(train_gen,
                                   steps_per_epoch=len(train_samples) // batch_size,
                                   epochs=number_of_epochs,
                                   validation_data=validation_gen,
-                                  workers=8,
-                                  use_multiprocessing=True,
                                   validation_steps=len(validation_samples) // batch_size,
+                                  callbacks=[checkpoint],
                                   verbose=1)
-
-    # finally save our model and weights
     model.save('model.h5')
+
+    output_images_dir = './images'
+    if not os.path.isdir(output_images_dir):
+        os.makedirs(output_images_dir)
+
+    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+    ax.plot(history.history['loss'])
+    ax.plot(history.history['val_loss'])
+    ax.set_title('Loss values')
+    ax.set_ylabel('loss')
+    ax.set_xlabel('epoch')
+    ax.legend(['train', 'validation'], loc='upper left')
+    plt.savefig(os.path.join(output_images_dir, 'train_val_process.jpg'))

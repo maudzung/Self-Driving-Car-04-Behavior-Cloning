@@ -1,8 +1,8 @@
 # **Behavioral Cloning Project**
 
-The goals / steps of this project are the following:
+The steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
-* Build, a convolution neural network in Keras that predicts steering angles from images
+* Build a convolution neural network in Keras that predicts steering angles from images
 * Train and validate the model with a training and validation set
 * Test that the model successfully drives around track one without leaving the road
 * Summarize the results with a written report
@@ -10,104 +10,82 @@ The goals / steps of this project are the following:
 (I check the [rubric points](https://review.udacity.com/#!/rubrics/432/view))
 
 ---
-### Files Submitted & Code Quality
 
-#### 1. Source code structure
+## Source code structure
 My project includes the following files:
 * data_utils.py containing the script to load data information and create data generators for training and validation set
 * transformation.py for augmentation dataset 
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network 
+* model.h5 containing a trained convolution neural network
 * README.md summarizing the results
 
-#### 2. How to run
+## Dataset
+### Data collection
+I collected data with udacity self-driving car simulator (downloaded Simulator Term 1 [ here](https://github.com/udacity/self-driving-car-sim)). 
+The Udacity simulator has two modes, training and autonomous, and two tracks. 
+Training mode is to log the data for learning the driving behaviour. 
+
+My strategy for data collection:
+- Three laps of center lane driving
+- Two laps of recovery driving from the sides
+- One lap focusing on driving smoothly around curves
+
+The simulator car had 3 front cameras that are the left camera, the right camera, and the center camera.
+I collected and used all images from the three cameras to train and validate my model.
+
+The setup of cameras and steering control were described in the below figure:
+
+![System](./images/system.png)
+
+
+### Data Pre-process & Augmentation
+First, I applied random horizontal flip and random brightness to the original image. <br>
+
+Random horizontal flip:
+
+![Random horizontal flip](./images/hflip.jpg)
+
+Random brightness:
+
+![Random brightness](./images/random_brightness.jpg)
+
+Second, I cropped the original image to remove the head of the car and the scence that is too far from the car.
+![crop](./images/crop.jpg)
+ 
+Third, I normalized images to a range of -0.5 to 0.5 (line #27 in the `model.py`)
+
+I tried to resize images to a size of (66, 200, 3) and convert the RGB images to YUV spaces as mentioned in the papers.
+However, results were not good, so I decided to not apply the resizing and converting steps.
+
+## Model Architecture
+My model bases on [Nvidia model](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf).
+It consists of 9 layers, including a normalization layer, 5 convolutional layers, and 4 fully connected layers (model.py lines 18-43).
+I tried to applied Dropout layers before Fully connected layers, but results are not good. 
+
+Model architecture:
+
+![model](./images/model.png)
+
+## Training Strategy
+- I randomly shuffled the data set and separated the collected data into two parts: 80% for training, 20% for validation (line #67 in `model.py`).
+- The model used an adam optimizer, the learning rate was set to 0.001 (model.py line 25). 
+- The batch size is 64.
+- I trained the model with 10 epochs.
+
+The progress of training as below:
+![progress](./images/train_val_process.jpg)
+
+## How to run
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py model.h5
 ```
 
-### Model Architecture and Training Strategy
+Optionally, the speed of the car could be changed in line #50 in `drive.py` file. By default, the speed was set to 9 MPH.
 
-#### 1. Model architecture
+**Demostration:**
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+The full demostration is at [https://youtu.be/0fgVSD8TWUc](https://youtu.be/0fgVSD8TWUc)
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
-
-#### 2. Data Pre-process & Augmentation
-
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
-
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). 
-The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
-
-#### 3. Hyper-parameters tuning
-
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
-
-#### 4. Appropriate training data
-
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, 
-recovering from the left and right sides of the road ... 
-
-For details about how I created the training data, see the next section. 
-
-### Model Architecture and Training Strategy
-
-#### 1. Solution Design Approach
-
-The overall strategy for deriving a model architecture was to ...
-
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
-
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
-
-#### 2. Final Model Architecture
-
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
-
-#### 3. Creation of the Training Set & Training Process
-
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example 
-image of center lane driving:
-
-![alt text][image2]
-
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle 
-would learn to .... These images show what a recovery looks like starting from ... :
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
-
-Then I repeated this process on track two in order to get more data points.
-
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image 
-that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
-
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
-
-I used this training data for training the model. The validation set helped determine if the model was over or under 
-fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the 
-learning rate wasn't necessary.
+![Demostration](./demo_P4.gif)
