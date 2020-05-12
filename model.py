@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     train_samples, validation_samples = train_test_split(samples, test_size=0.2, shuffle=True, random_state=2020)
 
-    train_gen = data_generator(train_samples, transformations=None, batch_size=batch_size)
+    train_gen = data_generator(train_samples, transformations=train_transformations, batch_size=batch_size)
     validation_gen = data_generator(validation_samples, transformations=None, batch_size=batch_size)
 
     checkpoint = ModelCheckpoint(filepath='model.{epoch:02d}-{val_loss:.2f}.h5')

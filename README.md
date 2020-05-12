@@ -1,5 +1,13 @@
 # **Behavioral Cloning Project**
 
+## Demostration
+
+The full demostration is at [https://youtu.be/0fgVSD8TWUc](https://youtu.be/0fgVSD8TWUc)
+
+![Demostration](./demo_P4.gif)
+
+## Objectives
+
 The steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
 * Build a convolution neural network in Keras that predicts steering angles from images
@@ -13,12 +21,23 @@ The steps of this project are the following:
 
 ## Source code structure
 My project includes the following files:
-* data_utils.py containing the script to load data information and create data generators for training and validation set
-* transformation.py for augmentation dataset 
-* model.py containing the script to create and train the model
-* drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network
-* README.md summarizing the results
+
+```shell script
+${ROOT}
+├──data/
+    ├──IMG/
+    ├──driving_log.csv
+├──images/ (Images for writing the note)
+├──data_utils.py (containing the script to load data information and create data generators for training and validation set
+├──drive.py (for driving the car in autonomous mode)
+├──model.py (containing the script to create and train the model)
+├──model.h5 (containing a trained convolution neural network)
+├──README.md (summarizing the results)
+├──video.mp4 (for demostration of the results)
+├──video.py (write images (after running drive.py) to a video)
+├──transformation.py (for augmentation dataset)
+
+```
 
 ## Dataset
 ### Data collection
@@ -83,9 +102,3 @@ python drive.py model.h5
 ```
 
 Optionally, the speed of the car could be changed in line #50 in `drive.py` file. By default, the speed was set to 9 MPH.
-
-**Demostration:**
-
-The full demostration is at [https://youtu.be/0fgVSD8TWUc](https://youtu.be/0fgVSD8TWUc)
-
-![Demostration](./demo_P4.gif)
